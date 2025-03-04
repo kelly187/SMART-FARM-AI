@@ -1,4 +1,4 @@
-# kellysmartfarm
+# KELLYSMARTFAR AI MODEL
 AI MODEL FOR CROP DISEASE DETECTION AND CLASSIFICATION
 
 Code Structure as follows:
