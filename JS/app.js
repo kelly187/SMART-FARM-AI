@@ -104,6 +104,59 @@ async function runInference() {
             const inputTensor = await preprocessImage(imageElement);
 
             // Load ONNX model
+            const session = await ort.InferenceSession.create('./leafnet.onnx');
+
+            // Prepare the input
+            const inputName = session.inputNames[0]; // 'input'
+            const tensor = new ort.Tensor('float32', inputTensor, [1, 3, 224, 224]);
+
+            // Run inference
+            const feeds = { [inputName]: tensor };
+            const results = await session.run(feeds);
+
+            // Get output
+            const outputName = session.outputNames[0]; // 'output'
+            const logits = results[outputName].data;
+            const probabilities = softmax(Array.from(logits));
+
+            // Get class index and confidence
+            const maxIndex = probabilities.indexOf(Math.max(...probabilities));
+            const confidence = (probabilities[maxIndex] * 100).toFixed(2);
+
+            // Fetch labels
+            const labels = await fetch('./labs.txt').then(res => res.text());
+            const labelArray = labels.split('\n');
+			
+			lab = labelArray[maxIndex]
+			cof = confidence
+            // Display result
+
+            
+			sent()
+            
+        } catch (error) {
+            console.error("Error running inference:", error);
+            outputDiv.innerText = "Error running inference. Check console for details.";
+        }
+
+}
+
+
+async function runInference2() {
+    const imageInput = document.getElementById('imageInput');
+    const outputDiv = document.getElementById('output');
+
+    if (!imageInput.files.length) {
+        outputDiv.innerText = "Please upload an image!";
+        return;
+    }
+
+
+        try {
+            // Preprocess the image
+            const inputTensor = await preprocessImage(imageElement);
+
+            // Load ONNX model
             const session = await ort.InferenceSession.create('./model.onnx');
 
             // Prepare the input
@@ -130,7 +183,9 @@ async function runInference() {
 			lab = labelArray[maxIndex]
 			cof = confidence
             // Display result
-			sent()
+
+            
+			sent2()
             
         } catch (error) {
             console.error("Error running inference:", error);
@@ -139,22 +194,52 @@ async function runInference() {
 
 }
 
+
+
 function sent(){
 	    const outputDiv = document.getElementById('output');
-		labe = lab.split("__")
-		laben = labe[1]
-		labin = laben.trim()
-		laba = labe[0]
-		if (cof<50){
-	    outputDiv.innerText = 'Unclassified Image, Try with Clearer Image!! ' 
-		} else if(labin == 'Healthy') {
-			dise = 'NONE' +'\n'
-			stater = 'Healthy'
+
+        labin = 'dummy'
+		if (lab === 'NOT_LEAF'){
+	    outputDiv.innerText = 'Image is Not a Leaf/Plant, Please retry with Plant Image!! ' 
+		
+        } else if(lab == 'LEAF' && cof < 70) {
+
+        outputDiv.innerText = 'Unclear Image, Please retry with a Clearer Plant Image!! ' 
 		} else {
-			stater = 'Diseased'
-			dise = laben
+        outputDiv.innerText = 'Type: ' + lab + '\n' + 'Confidence: ' + cof +'%';
+        runInference2()
 		}
-		console.log('display')	
-	outputDiv.innerText = 'Crop Type: ' + laba + '\n' + ' State: '+ stater + '\n'+ ' Disease Type: '+ dise + 'Confidence: ' + cof +'%';
+			
+	//outputDiv.innerText = 'Crop Type: ' + laba + '\n' + ' State: '+ stater + '\n'+ ' Disease Type: '+ dise + 'Confidence: ' + cof +'%';
+  
+}
+
+
+
+function sent2(){
+    const outputDiv2 = document.getElementById('output2');
+    labe = lab.split("__")
+    laben = labe[1]
+    labin = laben.trim()
+    laba = labe[0]
+    //labin = 'dummy'
+
+    if(labin == 'Healthy') {
+        dise = 'NONE' +'\n'
+        stater = 'Healthy'
+    } else {
+        stater = 'Diseased'
+        dise = laben
+    }
+
+    if (cof<60){
+        outputDiv2.innerText = 'Unclassified Image, Try with Clearer Image!! ' 
+        } else {
+        
+            outputDiv2.innerText = 'Crop Type: ' + laba + '\n' + ' State: '+ stater + '\n'+ ' Disease Type: '+ dise + '\n' + 'Confidence: ' + cof +'%';
+            //outputDiv.innerText = 'Type: ' + lab + '\n' + 'Confidence: ' + cof +'%';
+            
+        }
 
 }
