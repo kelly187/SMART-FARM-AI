@@ -154,7 +154,7 @@ function sent(){
 			stater = 'Diseased'
 			dise = laben
 		}
-			
+		console.log('display')	
 	outputDiv.innerText = 'Crop Type: ' + laba + '\n' + ' State: '+ stater + '\n'+ ' Disease Type: '+ dise + 'Confidence: ' + cof +'%';
 
 }
